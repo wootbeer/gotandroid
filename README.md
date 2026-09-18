@@ -24,6 +24,13 @@ SHA1 hash of GOTRES.DAT:
 On first launch the game will ask you to select the folder with the file.
 If it closes you are not using the correct version of the file.
 
+Installing / Updating
+-------
+Grab the latest APK from the [Releases](https://github.com/wootbeer/gotandroid/releases) page
+and install it directly, or track it with [Obtainium](https://github.com/ImranR98/Obtainium) for
+automatic update checks -- add it there with this repo's URL:
+`https://github.com/wootbeer/gotandroid`
+
 Controls
 -------
 Auto show/hide on-screen touch controls.
