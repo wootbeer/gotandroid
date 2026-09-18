@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:tools="http://schemas.android.com/tools"
+	package="wootbeer.gotandroid"
+	android:installLocation="auto">
+
+	<application
+		android:allowBackup="false"
+		android:icon="@mipmap/ic_launcher"
+		android:label="@string/app_name"
+		android:appCategory="game"
+		tools:targetApi="o">
+		<!--
+			wootbeer: "if during the boss battle I lock the android device's screen, then come back
+			to the game, the game's music actually changed." Root cause: this activity was
+			missing android:configChanges entirely, and android:screenOrientation below is
+			"sensorLandscape", a device orientation SENSOR reading, not a fixed rotation,
+			which keeps reporting a value even face-down/locked in a pocket, and very often
+			reports a DIFFERENT landscape reading (regular vs. upside-down landscape) by the
+			time the screen is unlocked than it did going in. Without configChanges listing
+			"orientation" (and, per Android's own docs, "screenSize"/"screenLayout" alongside it
+			on API 13+, since a sensor-driven landscape flip can also touch those), Android's
+			default behavior for ANY of those config deltas, even ones that never change this
+			fixed-landscape layout at all, is to fully DESTROY AND RECREATE the Activity
+			(onCreate() again), which builds a brand-new GotView instance. That new instance's
+			own gotRunning starts false, so its surfaceCreated() (GotView.java) takes the
+			cold-start branch and spawns a SECOND native gotMain() (got_main.c) call on a new
+			thread, while the ORIGINAL render thread (still correctly blocked inside
+			pauseRenderThread(), holding the real in-progress boss fight) is simply orphaned,
+			never torn down. This port's own native globals (s_boss_active, s_current_level,
+			etc.) are plain C statics in the one shared library instance for this process, so
+			they're untouched by the new Activity, the boss fight's own game STATE survives
+			intact, but gotMain()'s own one-time startup sequence unconditionally calls
+			got_play_music(MUSIC_OPENSONG, false) once GOTRES.DAT loads successfully (see that
+			call site's own comment: correct for an actual cold launch, since nothing else could
+			already be playing at that exact point, not true here), stomping the boss music
+			that was still legitimately active in the orphaned original session. Fixed the
+			standard Android way: android:configChanges below tells the OS this activity handles
+			these config deltas itself (a no-op here, since onConfigurationChanged() is never
+			overridden and the locked sensorLandscape layout never actually needs to change),
+			so Android now leaves the existing Activity/GotView instance (and its one real render
+			thread/gotMain() call) alone across an orientation-sensor reading change instead of
+			recreating it, letting the already-correct onPause()/onResume() plus
+			Want_pause/pauseRenderThread() handshake (section 31 area) do what it already does
+			right: block during the lock, resume the SAME boss track exactly where it left off.
+		-->
+		<activity
+			android:name=".GotActivity"
+			android:label="@string/app_name"
+			android:launchMode="singleTask"
+			android:screenOrientation="sensorLandscape"
+			android:theme="@style/GotTheme"
+			android:windowSoftInputMode="adjustNothing"
+			android:hardwareAccelerated="false"
+			android:exported="true"
+			android:configChanges="orientation|screenSize|screenLayout|keyboardHidden">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity>
+	</application>
+</manifest>

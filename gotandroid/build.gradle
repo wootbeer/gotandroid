@@ -1,0 +1,43 @@
+apply plugin: 'com.android.application'
+android {
+    compileSdkVersion 31
+    buildToolsVersion "31.0.0"
+    defaultConfig {
+        minSdkVersion 21
+        targetSdkVersion 31
+        externalNativeBuild {
+            cmake {
+                cFlags "-DANDROID_NDK", "-DDISABLE_IMPORTGL", "-DOGLES", "-DNASM", "-DNETWORK"
+            }
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig debug.signingConfig
+            externalNativeBuild {
+                cmake {
+                    cFlags.addAll("-DNDEBUG", "-DRELEASE")
+                }
+            }
+        }
+    }
+    externalNativeBuild {
+        cmake {
+            path "src/main/cpp/CMakeLists.txt"
+            version "3.10.2"
+        }
+    }
+    splits {
+        abi {
+            enable true
+            universalApk false
+            reset()
+            // The old default ABI list included armeabi/mips/mips64, which the
+            // current NDK no longer ships toolchains for (CXX1201). Restrict to
+            // the ABIs that still exist.
+            include "arm64-v8a", "armeabi-v7a", "x86", "x86_64"
+        }
+    }
+    namespace 'wootbeer.gotandroid'
+}
