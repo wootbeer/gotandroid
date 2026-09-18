@@ -1,7 +1,3 @@
-# Xcode
-#
-# gitignore contributors: remember to update Global/Xcode.gitignore, Objective-C.gitignore & Swift.gitignore
-
 ## Build generated
 build/
 DerivedData
@@ -134,11 +130,10 @@ lint/tmp/
 *.hprof
 
 # Descore data files
-*.hog
-*.pig
-*.HOG
-*.PIG
+# none used
 
+# GOT data files
+GOTRES.DAT
 
 # Debug/crash logs generated during on-device testing -- not source, multi-MB each
 crash_log*.txt
@@ -149,6 +144,6 @@ a_button_log.txt
 # IDE project state -- not shared for a solo project
 .idea/
 
-# Local working files from AI-assisted development (reference art, sprite decodes, preview
+# Local working files from AI-assistance (reference art, sprite decodes, preview
 # renders) -- kept on disk since they're still useful, just not part of the shipped project.
 Claude outputs/
